@@ -92,11 +92,6 @@ def plotSolutionGraph(capture_pos,edges,trees_pos,filename):
     ax = plt.gca()
     ax.cla() 
 
-    print(edges)
-
-#    plt.figure(figsize=(12,8))
-#    plt.plot(trees_pos[:,0],trees_pos[:,1],'o',color ='g')
-
     plt.scatter(capture_pos[:,0],capture_pos[:,1],color='b')
 
     for i, txt in enumerate(trees_pos[:,2]):

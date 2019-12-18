@@ -5,7 +5,7 @@ import numpy as np
 from concorde.tsp import TSPSolver
 import functions as fc
 import plots_functions as pf
-import file_writer as fw
+import file_reader_writer as frw
 import time
 import sys
 import os
@@ -36,15 +36,8 @@ def computeTsp(filename):
     print(solution.found_tour)
     print( colored("With optimal value [m]:","red") )
     print(solution.optimal_value/100)
- 
-    sol = solution.tour
-    print(solution)
-    print(sol)
-#    edges = fc.formatEdges(sol)
-#    fo = computeFo(dist,edges) #don't need to calculate the distance since is stored in the optimal_value
-#    print(fo)
-#    return fo,sol
-    return solution.optimal_value,sol,eval_time
+
+    return solution,eval_time
 
 def distMatrix(n_trees, points,centers): #ASYMMETRIC MATRIX
     dist = np.zeros(shape=[n_trees*4,n_trees*4],dtype=int)    
@@ -193,22 +186,32 @@ def generateTSPFile(namefile,n_tree,distMatrix):
 
 
 
-def main(R=5,n_rows=4, n_cols=3): #REMARK: n_rows*n_cols MUST BE ODD, OTHERWISE HAMILTONIAN PATH DOESN'T EXIST
+def main(): 
 
 
-#PARAMETERS
-#R = 1000 radious of trees    
-    inBetweenRows = 0 # where we want to take points around trees. REMARK: with n_rows = n_cols = EVEN no HAMILTONIAN path can be found.
-                      #for small rows and cols it finds still a (wrong) solution, while for large rows and cols it fails 
-    obstacles_enabled = 1 #trees are considered in the weighted graph
-    molt = 1000
-    tree_radious = 0.3
-    dist_row = 3.0#*molt
-    dist_col = 4.5#*molt
-    n_trees = n_cols*n_rows
+    params_dict = frw.getParams( 'parameters.yaml' )
 
-    est_single_stop_time = 3*60 #sec
+    #############
+    #store params
+    n_rows = params_dict['rows_number']
+    n_cols = params_dict['cols_number']
+    tree_radious = params_dict['tree_radious']
+    dist_row = params_dict['row_distance']
+    dist_col = params_dict['col_distance']
+    stop_time = params_dict['stop_time']
+    inBetweenRows = params_dict['stop_in_between']
+    
+    MAX_cap_dist = params_dict['maximize_capture_distance']
 
+    obstacles_enabled = params_dict['include_trees_as_obstacles']
+   
+    #############
+
+ 
+    # EVEN n_rows and n_cols brings to an ODD number of total stop points, on which the TSP algorithm would fail 
+    if ( inBetweenRows ) and (not(n_rows%2) and not(n_cols%2)):
+        print("For the selected Lattice an Hamiltonian Path does not exists. Change number of stops.")
+        sys.exit()
 
 #    My solution
    
@@ -224,7 +227,6 @@ def main(R=5,n_rows=4, n_cols=3): #REMARK: n_rows*n_cols MUST BE ODD, OTHERWISE 
 #    pf.plotCapturePts(capture_pts)
 
     print(capture_pts.shape[0])
-    print(capture_pts.shape[1])
  
 
     pf.plotTreesAndCaptures(trees_pos,capture_pts,tree_radious)
@@ -237,21 +239,22 @@ def main(R=5,n_rows=4, n_cols=3): #REMARK: n_rows*n_cols MUST BE ODD, OTHERWISE 
         W = addConstraints(W,n_rows,n_cols,inBetweenRows)
 
 
-    print(Adj_matrix)
-    print(W)
+    #TODO 
+    # W = addSteeringWeight()
+
 
     Adj_list = fromMatrix2List(Adj_matrix)
     
-    fw.generateTSPFileFromAdj(inBetweenRows,capture_pts.shape[0], W*100, Adj_list) #TSP solver takes only int numbers 
+    frw.generateTSPFileFromAdj(inBetweenRows,capture_pts.shape[0], W*100, Adj_list) #TSP solver takes only int numbers 
 
     #TSP solver assumption: complete graph.
-    opt_dist , soluti, comp_time = computeTsp("Grid" + str(inBetweenRows) + ".tsp")
+    soluti, comp_time = computeTsp("Grid" + str(inBetweenRows) + ".tsp")
 
-    edges = fc.formatEdges(soluti)
+    edges = fc.formatEdges(soluti.tour)
     
     pf.plotSolutionGraph(capture_pts,edges,trees_pos,"SolGrid" + str(inBetweenRows) + str(n_rows) + "x" + str(n_cols) + ".txt")
 
-    fw.writeOutCome(est_single_stop_time,inBetweenRows, n_rows, n_cols, opt_dist/100 , soluti, comp_time)
+    frw.writeOutCome(stop_time,inBetweenRows, n_rows, n_cols, soluti.optimal_value/100 , soluti.tour, comp_time)
 
     sys.exit()
 

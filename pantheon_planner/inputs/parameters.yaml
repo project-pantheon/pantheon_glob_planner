@@ -1,0 +1,25 @@
+#field properties
+
+rows_number: 3
+
+cols_number: 6
+
+tree_radious: 0.3
+
+row_distance: 3.0
+
+col_distance: 5.0
+
+#campain properties
+
+maximize_capture_distance: 0 #if true the next section is not required. 
+# 1: to every tree 4 capture points are associated
+# 0: eventually, some capture points are merged to be 1 for 2 or 4 trees (depends on stop_in_between_param)
+
+stop_time: 3 * 60 #sec every robot stop for capture sequence
+
+stop_in_between: 1 #if set to 1 the stops are
+
+#TSP solution properties
+
+include_trees_as_obstacles: 1 #otherwise the path through trees positions is enabled
