@@ -5,8 +5,12 @@ Created on Tue Jan  8 14:23:33 2019
 
 @author: Jacopo
 """
-
+import os
 import matplotlib.pyplot as plt
+
+def getCurrWDir():
+
+    return os.getcwd()
 
 def plotMapTrees(trees_pos,tree_radious):
     
@@ -50,41 +54,11 @@ def plotTreesAndCaptures(trees_pos,capture_pos,tree_radious):
     plt.title("All the points")
 
     name = "capture_pts_and_trees"
-    plt.savefig("/home/majo/libs/pyconcorde/pantheon_planner/results/"+ name, dpi = 800 ,format = 'pdf')
-    plt.show()
+    path = getCurrWDir()
 
-
-def plotColouredGraph(centers,neighbors,colors,n_trees):
-    x = centers[:,0].flatten()
-    y = centers[:,1].flatten()
-    
-    dic = groupByColour(colors)
-    reds = dic.get('R')
-    greens = dic.get('G') 
-    blues =dic.get('B')
-    #yellows = dic.get('Y')
-    
-    plt.figure(figsize=(8,6))
-    for i in range(len(reds)):
-        plt.plot(centers[int(reds[i]),0],centers[int(reds[i]),1],'o',color ='r',markersize=15)
-        
-    for i in range(len(greens)):
-        plt.plot(centers[int(greens[i]),0],centers[int(greens[i]),1],'o',color ='g',markersize=15)
-        
-    for i in range(len(blues)):
-        plt.plot(centers[int(blues[i]),0],centers[int(blues[i]),1],'o',color ='b',markersize=15)
-    
-    '''for i in range(len(yellows)):
-        plt.plot(centers[int(yellows[i]),0],centers[int(yellows[i]),1],'o',color ='y',markersize=2)'''
-    
-    e1,e2 = get_Trees_Edges(neighbors,n_trees)
-    e_x = [x[e1],x[e2]]
-    e_y = [y[e1],y[e2]]
-    plt.plot(e_x, e_y, linestyle='-', color='y')  
+    plt.savefig( path + "/results/"+ name, dpi = 800 ,format = 'pdf')
+    plt.show()  
  
-
-
-
 
 def plotPoints(points,edges):
     x = points[:,0].flatten()
@@ -137,7 +111,9 @@ def plotSolutionGraph(capture_pos,edges,trees_pos,filename):
 
     plt.annotate("start/stop", (x[edges[0,0]]-0.5,y[edges[0,0]]-0.5))
 
-    plt.savefig("/home/majo/libs/pyconcorde/pantheon_planner/results/"+filename, format = 'pdf')
+    path = getCurrWDir()
+
+    plt.savefig(path + "/results/" + filename, format = 'pdf')
 
     plt.axis("equal")
     plt.show()
@@ -166,7 +142,8 @@ def plotGraph(points,edges,trees_pos,n_col,n_row):
     plt.plot(x[edges.T], y[edges.T], color='y',markerfacecolor='red', marker='o') 
     
     name = str(n_col)+"x"+str(n_row)
-    plt.savefig("/home/majo/libs/pyconcorde/pantheon_planner/results/"+name, format = 'pdf')
+    path = getCurrWDir()
+    plt.savefig(path + "/results/" + name, format = 'pdf')
     
 
     plt.axis("equal")

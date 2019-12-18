@@ -8,6 +8,7 @@ import plots_functions as pf
 import file_writer as fw
 import time
 import sys
+import os
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from termcolor import colored
@@ -16,33 +17,14 @@ from concorde.tests.data_utils import get_dataset_path
 
 np.set_printoptions(threshold=sys.maxsize)
 
+def getCurrWDir():
 
-def computeTsp(n_trees,dist,points):   
-    
-    generateTSPFile("nodes.tsp",n_trees,dist)
-    solver = TSPSolver.from_tspfile("/home/majo/libs/pyconcorde/pantheon_planner/inputs/nodes.tsp")
-
-    start_time = time.time()
-    solution = solver.solve()
-    print( colored("--- %s seconds ---" % (time.time() - start_time)) )
-    print( colored("Outcome TSP:","green") )
-    print(solution.found_tour)
-    print( colored("With optimal value:","green") )
-    print(solution.optimal_value/100)
- 
-    sol = solution.tour
-
-    print(sol)
-#    edges = fc.formatEdges(sol)
-#    fo = computeFo(dist,edges) #don't need to calculate the distance since is stored in the optimal_value
-#    print(fo)
-#    return fo,sol
-    return solution.optimal_value,sol
+    return os.getcwd()
 
 
-def computeAdjTsp(filename):   
- 
-    solver = TSPSolver.from_tspfile("/home/majo/libs/pyconcorde/pantheon_planner/inputs/" + filename)
+def computeTsp(filename):   
+     
+    solver = TSPSolver.from_tspfile( getCurrWDir() + "/inputs/" + filename)
 
     start_time = time.time()
     solution = solver.solve()
@@ -211,7 +193,7 @@ def generateTSPFile(namefile,n_tree,distMatrix):
 
 
 
-def main(R=5,n_rows=4, n_cols=2): #REMARK: n_rows*n_cols MUST BE ODD, OTHERWISE HAMILTONIAN PATH DOESN'T EXIST
+def main(R=5,n_rows=4, n_cols=3): #REMARK: n_rows*n_cols MUST BE ODD, OTHERWISE HAMILTONIAN PATH DOESN'T EXIST
 
 
 #PARAMETERS
@@ -221,8 +203,8 @@ def main(R=5,n_rows=4, n_cols=2): #REMARK: n_rows*n_cols MUST BE ODD, OTHERWISE 
     obstacles_enabled = 1 #trees are considered in the weighted graph
     molt = 1000
     tree_radious = 0.3
-    dist_row = 5.0#*molt
-    dist_col = 5.0#*molt
+    dist_row = 3.0#*molt
+    dist_col = 4.5#*molt
     n_trees = n_cols*n_rows
 
     est_single_stop_time = 3*60 #sec
@@ -241,25 +223,29 @@ def main(R=5,n_rows=4, n_cols=2): #REMARK: n_rows*n_cols MUST BE ODD, OTHERWISE 
         capture_pts = fc.generateinBetweenCapturePts(n_rows,n_cols, dist_row,dist_col) #ok
 #    pf.plotCapturePts(capture_pts)
 
-    print(capture_pts.size)
-
+    print(capture_pts.shape[0])
+    print(capture_pts.shape[1])
  
 
     pf.plotTreesAndCaptures(trees_pos,capture_pts,tree_radious)
 
     Adj_matrix = computeAdjMatrix(n_rows,n_cols,inBetweenRows)
-    
+
     W = computeWeightMatrix(Adj_matrix,capture_pts)
 
     if ( obstacles_enabled ):
         W = addConstraints(W,n_rows,n_cols,inBetweenRows)
+
+
+    print(Adj_matrix)
+    print(W)
 
     Adj_list = fromMatrix2List(Adj_matrix)
     
     fw.generateTSPFileFromAdj(inBetweenRows,capture_pts.shape[0], W*100, Adj_list) #TSP solver takes only int numbers 
 
     #TSP solver assumption: complete graph.
-    opt_dist , soluti, comp_time = computeAdjTsp("Grid" + str(inBetweenRows) + ".tsp")
+    opt_dist , soluti, comp_time = computeTsp("Grid" + str(inBetweenRows) + ".tsp")
 
     edges = fc.formatEdges(soluti)
     
